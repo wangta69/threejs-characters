@@ -8,61 +8,20 @@ export class Monster {
   private mesh = new THREE.Group();
   private body = new THREE.Group();
 
-  // private torsoGeom = new THREE.BoxGeometry(15, 15, 20, 1);
   private torso: any; // = new THREE.Mesh(torsoGeom, blackMat);
-
-  // private headGeom = new THREE.BoxGeometry(20, 20, 40, 1);
   private head: any; // = new THREE.Mesh(headGeom, blackMat);
-
-
-  // private mouthGeom = new THREE.BoxGeometry(10, 4, 20, 1);
   private mouth: any; // = new THREE.Mesh(mouthGeom, blackMat);
 
-
   private heroHolder = new THREE.Group();
-
-
-  // private toothGeom = new THREE.BoxGeometry(2, 2, 1, 1);
-
-
-
-
-  // private tongueGeometry = new THREE.BoxGeometry(6, 1, 14);
-
   private tongue: any; // = new THREE.Mesh(tongueGeometry, pinkMat);
-
-
-  // private noseGeom = new THREE.BoxGeometry(4, 4, 4, 1);
   private nose: any; // = new THREE.Mesh(noseGeom, pinkMat);
-
-
-
-  // private eyeGeom = new THREE.BoxGeometry(2, 3, 3);
-
   private eyeL: any; // = new THREE.Mesh(eyeGeom, whiteMat);
   private eyeR: any; // = this.eyeL.clone();
   // private irisGeom = new THREE.BoxGeometry(.6, 1, 1);
 
   private iris: any; // = new THREE.Mesh(irisGeom, blackMat);
-
-
-  
-
-
-
-  // private earGeom = new THREE.BoxGeometry(8, 6, 2, 1);
-
-
-
   private earL: any; // = new THREE.Mesh(earGeom, blackMat);
-
-
   private earR: any; // = this.earL.clone();
-
-
-  // private eyeGeom = new THREE.BoxGeometry(2, 4, 4);
-
-  // private tailGeom = new THREE.CylinderGeometry(5, 2, 20, 4, 1);
 
 
   private tail: any; // = new THREE.Mesh(tailGeom, blackMat);
@@ -280,9 +239,6 @@ export class Monster {
     GSAP.gsap.to(this.mouth.rotation, { duration: sp, x: .3, ease: ease });
     GSAP.gsap.to(this.eyeL.scale, { duration: sp, y: 1, ease: ease });
     GSAP.gsap.to(this.eyeR.scale, { duration: sp, y: 1, ease: ease });
-
-
-
   }
 
   private nod() {

@@ -1,12 +1,17 @@
 import { Component,OnInit,AfterViewInit,ViewChild,ElementRef } from '@angular/core';
 import * as GSAP from 'gsap';
 import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 import { Hero } from './objects/Hero';
 import { Monster } from './objects/Monster';
 import { Tree } from './objects/Tree';
 import { Hedgehog } from './objects/Hedgehog';
 import { Carrot } from './objects/Carrot';
+import { Car as Car1 } from './objects/Car';
+import { Dice } from './objects/OBJLoader/Dice';
+import { Car } from './objects/OBJLoader/Car';
+import { Cottage } from './objects/OBJLoader/Cottage';
 import { BonusParticles } from './objects/BonusParticles';
 
 @Component({
@@ -54,11 +59,11 @@ export class GameComponent implements OnInit, AfterViewInit{
   private collisionBonus = 20;
   private gameStatus = "play";
   private cameraPosGame = 160;
-  private cameraPosGameOver = 260;
+  // private cameraPosGameOver = 260;
   private monsterAcceleration = 0.004;
   private malusClearColor = 0xb44b39;
   private malusClearAlpha = 0;
-  private audio = new Audio('https://s3-us-west-2.amazonaws.com/s.cdpn.io/264161/Antonio-Vivaldi-Summer_01.mp3');
+  // private audio = new Audio('https://s3-us-west-2.amazonaws.com/s.cdpn.io/264161/Antonio-Vivaldi-Summer_01.mp3');
 
   private carrot: any;
   private obstacle: any;
@@ -67,8 +72,11 @@ export class GameComponent implements OnInit, AfterViewInit{
   private fieldDistance: any;
   private bonusParticles: any;
 
+  
+  private dice: any;
+  private car1: any;
+  
   //SCREEN & MOUSE VARIABLES
-
   private HEIGHT!: number;
   private WIDTH!: number;
   private windowHalfX: any;
@@ -93,14 +101,18 @@ export class GameComponent implements OnInit, AfterViewInit{
     this.initScreenAnd3D();
     this.createLights();
     this.createFloor()
-    this.createHero();
-    this.createMonster();
-    this.createFirs();
-    this.createCarrot();
-    this.createBonusParticles();
-    this.createObstacle();
-    this.initUI();
-    this.resetGame();
+    // this.createHero();
+    // this.createMonster();
+    // this.createFirs();
+    // this.createCarrot();
+    // this.createCar1();
+    // this.createDice();
+    // this.createCar();
+    this.createCottage();
+    // this.createBonusParticles();
+    // this.createObstacle();
+    // this.initUI();
+    // this.resetGame();
     this.loop();
   }
 
@@ -114,7 +126,7 @@ export class GameComponent implements OnInit, AfterViewInit{
     this.windowHalfY = this.HEIGHT / 2;
 
     this.scene = new THREE.Scene();
-    this.scene.fog = new THREE.Fog(0xd6eae6, 160, 350);
+    // this.scene.fog = new THREE.Fog(0xd6eae6, 160, 350);
 
     // 카메라 환경설정
     this.aspectRatio = this.WIDTH / this.HEIGHT;
@@ -132,6 +144,10 @@ export class GameComponent implements OnInit, AfterViewInit{
     this.camera.position.y = 30;
     this.camera.lookAt(new THREE.Vector3(0, 30, 0));
 
+    // var helper = new THREE.CameraHelper(dirLight.shadow.camera);
+    var helper = new THREE.CameraHelper(this.camera);
+    this.scene.add(helper);
+
     this.renderer = new THREE.WebGLRenderer({
       alpha: true,
       antialias: true
@@ -140,7 +156,7 @@ export class GameComponent implements OnInit, AfterViewInit{
     this.renderer.setClearColor(this.malusClearColor, this.malusClearAlpha);
 
     this.renderer.setSize(this.WIDTH, this.HEIGHT);
-    // this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.enabled = true;
 
 
     this.domContainer.nativeElement.appendChild(this.renderer.domElement);
@@ -148,6 +164,13 @@ export class GameComponent implements OnInit, AfterViewInit{
     window.addEventListener('resize', this.handleWindowResize.bind(this), false);
     document.addEventListener('mousedown', this.handleMouseDown.bind(this), false);
     document.addEventListener("touchend", this.handleMouseDown.bind(this), false);
+
+    const controls = new OrbitControls(this.camera, this.renderer.domElement);
+    controls.minPolarAngle = -Math.PI / 2; 
+    controls.maxPolarAngle = Math.PI / 2;
+    controls.autoRotate = true;
+    // controls.noZoom = true;
+    // controls.noPan = true;
 
     // this.controls.noPan = true;
 
@@ -189,13 +212,47 @@ export class GameComponent implements OnInit, AfterViewInit{
     floorGrass.receiveShadow = false;
 
     this.floor = new THREE.Group();
-    this.floor.position.y = -this.floorRadius;
 
-    this.floor.add(floorShadow);
-    this.floor.add(floorGrass);
-    this.scene.add(this.floor);
   }
+
+  private createCar1() {
+    this.car1 = new Car1();
+    // console.log('car:', this.car1 );
+    // this.car1.mesh.position.x = 100;
+    // this.car1.mesh.position.y = 100;
+    console.log('this.car1.mesh:', this.car1.mesh)
+    this.scene.add(this.car1.mesh);
+  }
+
+  /*
+  private createCarrot() {
+    this.carrot = new Carrot();
+    this.scene.add(this.carrot.mesh);
+  }
+    */
   
+  private async createDice() {
+    this.dice = new Dice();
+    const dice = await this.dice.create();
+    console.log('dice:', dice);
+    this.scene.add(dice);
+
+    
+  }
+
+  private async createCar() {
+    const carObj = new Car();
+    const car: any = await carObj.create();
+
+    this.scene.add(car.children[3]);
+  }
+
+  private async createCottage() {
+    const obj = new Cottage();
+    const cottage: any = await obj.create();
+    this.scene.add(cottage);
+  }
+
   private createHero() {
     this.hero = new Hero(this);
     this.hero.mesh.rotation.y = Math.PI / 2;
@@ -208,35 +265,15 @@ export class GameComponent implements OnInit, AfterViewInit{
     this.monster.mesh.position.z = 20;
     //monster.mesh.scale.set(1.2,1.2,1.2);
     this.scene.add(this.monster.mesh);
-    this.updateMonsterPosition();
+
+    this.monster.mesh.position.y = 10
+    this.monster.mesh.position.x = -90;
+    // console.log(Math.cos(angle) * (this.floorRadius + 15));
+    this.monster.mesh.rotation.z =0.5
+    this.monster.mesh.rotation.x =0.5
+    // this.updateMonsterPosition();
   }
 
-  private updateMonsterPosition() {
-    this.monster.run();
-    this.monsterPosTarget -= this.delta * this.monsterAcceleration;
-    this.monsterPos += (this.monsterPosTarget - this.monsterPos) * this.delta;
-    if (this.monsterPos < .56) {
-      this.gameOver();
-    }
-
-    const angle = Math.PI * this.monsterPos;
-    this.monster.mesh.position.y = - this.floorRadius + Math.sin(angle) * (this.floorRadius + 12);
-    this.monster.mesh.position.x = Math.cos(angle) * (this.floorRadius + 15);
-    this.monster.mesh.rotation.z = -Math.PI / 2 + angle;
-  }
-
-  private gameOver() {
-    this.fieldGameOver.className = "show";
-    this.gameStatus = "gameOver";
-    this.monster.sit();
-    this.hero.hang();
-    this.monster.heroHolder.add(this.hero.mesh);
-    GSAP.gsap.to(this, { duration: 1, speed: 0 });
-    GSAP.gsap.to(this.camera.position, {duration: 3, z: this.cameraPosGameOver, y: 60, x: -30 });
-    this.carrot.mesh.visible = false;
-    this.obstacle.mesh.visible = false;
-    clearInterval(this.levelInterval);
-}
 
   private createFirs() {
     const nTrees = 100;
@@ -247,9 +284,9 @@ export class GameComponent implements OnInit, AfterViewInit{
       theta += (Math.random() > .05) ? .25 + Math.random() * .3 : - .35 - Math.random() * .1;
 
       const fir = new Tree();
-      fir.mesh.position.x = Math.sin(theta) * Math.cos(phi) * this.floorRadius;
-      fir.mesh.position.y = Math.sin(theta) * Math.sin(phi) * (this.floorRadius - 10);
-      fir.mesh.position.z = Math.cos(theta) * this.floorRadius;
+      fir.mesh.position.x = 10;
+      fir.mesh.position.y = -90;
+      fir.mesh.position.z = 0.5;
 
       const vec = fir.mesh.position.clone();
       const axis = new THREE.Vector3(0, 1, 0);
@@ -268,148 +305,46 @@ export class GameComponent implements OnInit, AfterViewInit{
   }
   private createObstacle() {
     this.obstacle = new Hedgehog();
-    this.obstacle.body.rotation.y = -Math.PI / 2;
+    this.obstacle.body.rotation.y = 70;
     this.obstacle.mesh.scale.set(1.1, 1.1, 1.1);
-    this.obstacle.mesh.position.y = this.floorRadius + 4;
+    this.obstacle.mesh.position.y = 10;
+    this.obstacle.mesh.position.x = 100;
     this.obstacle.nod();
     this.scene.add(this.obstacle.mesh);
   }
-  private initUI() {
-    this.fieldDistance = document.getElementById("distValue");
-    this.fieldGameOver = document.getElementById("gameoverInstructions");
-  }
-  private resetGame() {
-    this.scene.add(this.hero.mesh);
-    this.hero.mesh.rotation.y = Math.PI / 2;
-    this.hero.mesh.position.y = 0;
-    this.hero.mesh.position.z = 0;
-    this.hero.mesh.position.x = 0;
+  // private initUI() {
+  //   this.fieldDistance = document.getElementById("distValue");
+  //   this.fieldGameOver = document.getElementById("gameoverInstructions");
+  // }
 
-    this.monsterPos = .56;
-    this.monsterPosTarget = .65;
-    this.speed = this.initSpeed;
-    this.level = 0;
-    this.distance = 0;
-    this.carrot.mesh.visible = true;
-    this.obstacle.mesh.visible = true;
-    this.gameStatus = "play";
-    this.hero.status = "running";
-    this.hero.nod();
-    this.audio.play();
-    this.updateLevel();
-    this.levelInterval = setInterval(() =>{ this.updateLevel(); }, this.levelUpdateFreq);
-  }
   private loop = () => {  
     this.delta = this.clock.getDelta();
     // console.log('this.delta >>>>>', this.delta);
-    this.updateFloorRotation();
+    // this.updateFloorRotation();
     // console.log(this.gameStatus, this.hero.status);
-    if (this.gameStatus == "play") {
+    // if (this.gameStatus == "play") {
 
-      if (this.hero.status == "running") {
-        this.hero.run();
-      }
-      this.updateDistance();
-      this.updateMonsterPosition();
-      this.updateCarrotPosition();
-      this.updateObstaclePosition();
-      this.checkCollision();
-    }
+      // if (this.hero.status == "running") {
+      //   this.hero.run();
+      //   this.monster.run();
+      // }
+
+      // this.car1.mesh.rotation.y -= 0.007;
+
+      // this.carrot.mesh.rotation.y += this.delta * 6;
+
+
+      // this.updateDistance();
+      // this.updateMonsterPosition();
+      // this.updateCarrotPosition();
+      // this.updateObstaclePosition();
+      // this.checkCollision();
+    // }
 
     this.render();
     requestAnimationFrame(this.loop);
   }
-  private updateFloorRotation() {
-    this.floorRotation += this.delta * .03 * this.speed;
 
-    this.floorRotation = this.floorRotation % (Math.PI * 2);
-
-    // console.log(this.floorRotation, this.delta, this.speed);
-    this.floor.rotation.z = this.floorRotation;
-  }
-
-  private updateDistance() {
-    this.distance += this.delta * this.speed;
-    const d = this.distance / 2;
-    this.fieldDistance.innerHTML = Math.floor(d);
-  }
-
-  private updateCarrotPosition() {
-    this.carrot.mesh.rotation.y += this.delta * 6;
-    this.carrot.mesh.rotation.z = Math.PI / 2 - (this.floorRotation + this.carrot.angle);
-    this.carrot.mesh.position.y = -this.floorRadius + Math.sin(this.floorRotation + this.carrot.angle) * (this.floorRadius + 50);
-    this.carrot.mesh.position.x = Math.cos(this.floorRotation + this.carrot.angle) * (this.floorRadius + 50);
-
-  }
-
-  private updateObstaclePosition() {
-    if (this.obstacle.status == "flying") return;
-
-    // TODO fix this,
-    if (this.floorRotation + this.obstacle.angle > 2.5) {
-      this.obstacle.angle = -this.floorRotation + Math.random() * .3;
-      this.obstacle.body.rotation.y = Math.random() * Math.PI * 2;
-    }
-
-    this.obstacle.mesh.rotation.z = this.floorRotation + this.obstacle.angle - Math.PI / 2;
-    this.obstacle.mesh.position.y = -this.floorRadius + Math.sin(this.floorRotation + this.obstacle.angle) * (this.floorRadius + 3);
-    this.obstacle.mesh.position.x = Math.cos(this.floorRotation + this.obstacle.angle) * (this.floorRadius + 3);
-  }
-
-
-  private checkCollision() {
-    const db = this.hero.mesh.position.clone().sub(this.carrot.mesh.position.clone());
-    const dm = this.hero.mesh.position.clone().sub(this.obstacle.mesh.position.clone());
-
-    if (db.length() < this.collisionBonus) {
-      console.log('get bonus');
-      this.getBonus();
-    }
-
-    if (dm.length() < this.collisionObstacle && this.obstacle.status != "flying") {
-      console.log('get minus');
-      this.getMalus();
-    }
-  }
-
-  private getBonus() {
-    this.bonusParticles.mesh.position.copy(this.carrot.mesh.position);
-    this.bonusParticles.mesh.visible = true;
-    this.bonusParticles.explose();
-    this.carrot.angle += Math.PI / 2;
-    //speed*=.95;
-    this.monsterPosTarget += .025;
-
-  }
-
-  private getMalus() {
-    this.obstacle.status = "flying";
-    const tx = (Math.random() > .5) ? -20 - Math.random() * 10 : 20 + Math.random() * 5;
-    GSAP.gsap.to(this.obstacle.mesh.position, { duration: 4, x: tx, y: Math.random() * 50, z: 350, ease: GSAP.Power4.easeOut });
-    GSAP.gsap.to(this.obstacle.mesh.rotation, {
-      duration: 4, 
-      x: Math.PI * 3, z: Math.PI * 3, y: Math.PI * 6, ease: GSAP.Power4.easeOut, onComplete: () => {
-        this.obstacle.status = "ready";
-        this.obstacle.body.rotation.y = Math.random() * Math.PI * 2;
-        this.obstacle.angle = -this.floorRotation - Math.random() * .4;
-
-        this.obstacle.angle = this.obstacle.angle % (Math.PI * 2);
-        this.obstacle.mesh.rotation.x = 0;
-        this.obstacle.mesh.rotation.y = 0;
-        this.obstacle.mesh.rotation.z = 0;
-        this.obstacle.mesh.position.z = 0;
-      }
-    });
-    
-    this.monsterPosTarget -= .04;
-    GSAP.gsap.from(this, { 
-      duration: .5, 
-      malusClearAlpha: .5, onUpdate: () => {
-        this.renderer.setClearColor(this.malusClearColor, this.malusClearAlpha);
-      }
-    })
-
-  }
 
   private render() {
     this.renderer.render(this.scene, this.camera);
@@ -421,76 +356,19 @@ export class GameComponent implements OnInit, AfterViewInit{
     this.windowHalfX = this.WIDTH / 2;
     this.windowHalfY = this.HEIGHT / 2;
 
-    console.log('handleWindowResize', this.WIDTH, this.HEIGHT );
-    console.log('this.renderer', this.renderer);
     this.renderer.setSize(this.WIDTH, this.HEIGHT);
     this.camera.aspect = this.WIDTH / this.HEIGHT;
     this.camera.updateProjectionMatrix();
   }
   
   private handleMouseDown(event:any) {
-    if (this.gameStatus == "play") this.hero.jump();
-    else if (this.gameStatus == "readyToReplay") {
-      this.replay();
-    }
+  
   }
 
 
-  private updateLevel() {
-
-    console.log('uupdateLevel');
-    if (this.speed >= this.maxSpeed) return;
-    this.level++;
-    this.speed += 2;
-    console.log('this.speed:', this.speed);
-    
-  }
-
-  private replay() {
-
-    this.gameStatus = "preparingToReplay"
-
-    this.fieldGameOver.className = "";
-
-    GSAP.gsap.killTweensOf(this.monster.pawFL.position);
-    GSAP.gsap.killTweensOf(this.monster.pawFR.position);
-    GSAP.gsap.killTweensOf(this.monster.pawBL.position);
-    GSAP.gsap.killTweensOf(this.monster.pawBR.position);
-
-    GSAP.gsap.killTweensOf(this.monster.pawFL.rotation);
-    GSAP.gsap.killTweensOf(this.monster.pawFR.rotation);
-    GSAP.gsap.killTweensOf(this.monster.pawBL.rotation);
-    GSAP.gsap.killTweensOf(this.monster.pawBR.rotation);
-
-    GSAP.gsap.killTweensOf(this.monster.tail.rotation);
-    GSAP.gsap.killTweensOf(this.monster.head.rotation);
-    GSAP.gsap.killTweensOf(this.monster.eyeL.scale);
-    GSAP.gsap.killTweensOf(this.monster.eyeR.scale);
-
-    //GSAP.gsap.killTweensOf(hero.head.rotation);
-
-    this.monster.tail.rotation.y = 0;
-
-    GSAP.gsap.to(this.camera.position, { duration: 3, z: this.cameraPosGame, x: 0, y: 30, ease: GSAP.Power4.easeInOut });
-    GSAP.gsap.to(this.monster.torso.rotation, {duration: 2, x: 0, ease: GSAP.Power4.easeInOut });
-    GSAP.gsap.to(this.monster.torso.position, {duration: 2, y: 0, ease: GSAP.Power4.easeInOut });
-    GSAP.gsap.to(this.monster.pawFL.rotation, {duration: 2, x: 0, ease: GSAP.Power4.easeInOut });
-    GSAP.gsap.to(this.monster.pawFR.rotation, {duration: 2, x: 0, ease: GSAP.Power4.easeInOut });
-    GSAP.gsap.to(this.monster.mouth.rotation, {duration: 2, x: .5, ease: GSAP.Power4.easeInOut });
 
 
-    GSAP.gsap.to(this.monster.head.rotation, {duration: 2, y: 0, x: -.3, ease: GSAP.Power4.easeInOut });
-
-    GSAP.gsap.to(this.hero.mesh.position, {duration: 2, x: 20, ease: GSAP.Power4.easeInOut });
-    GSAP.gsap.to(this.hero.head.rotation, {duration: 2, x: 0, y: 0, ease: GSAP.Power4.easeInOut });
-    GSAP.gsap.to(this.monster.mouth.rotation, {duration: 2, x: .2, ease: GSAP.Power4.easeInOut });
-    GSAP.gsap.to(this.monster.mouth.rotation, {duration: 1,
-      x: .4, ease: GSAP.Power4.easeIn, delay: 1, onComplete:  () => {
-        this.resetGame();
-      }
-    });
-
-  }
+  
 
 }
 
